@@ -45,8 +45,10 @@ fn main() {
         let mut line = String::new();
 
         while content.read_line(&mut line).is_ok() && !line.is_empty() {
-          println!("{:?}", line);
-          break ;
+          if line.find_str(".SH NAME").is_some() {
+            content.read_line(&mut line).is_ok();
+            println!("{}", line);
+          }
           line.clear();
         }
       }
