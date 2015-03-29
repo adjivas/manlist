@@ -1,4 +1,6 @@
 #![feature(fs, io, path, collections)]
+#![feature(os)]
+
 use std::os;
 use std::collections::HashMap;
 use std::io::{BufReader, BufRead};
@@ -8,6 +10,11 @@ use std::borrow::ToOwned;
 struct Command {
   names: Vec<String>,
   description: String,
+}
+
+struct Argument {
+  option: String,
+  description: Vec<String>,
 }
 
 struct File {
@@ -22,7 +29,9 @@ struct Man {
   command: Command,
 }
 
-fn manlist(roots: &Vec<String>) -> Vec<Man> {
+fn manlist(
+  roots: &Vec<String>
+) -> Vec<Man> {
   let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
   for path in roots {
     match std::fs::walk_dir(&Path::new(path)) {
@@ -36,7 +45,7 @@ fn manlist(roots: &Vec<String>) -> Vec<Man> {
               Err(why) => println!("Could not open {:?}: {}", buf.file_name().unwrap(), why.description()),
               Ok(file_open) => {
                 match buf.file_name().unwrap().to_os_string().into_string() {
-                  Err(why) => panic!("Could not into_string"),
+                  Err(_) => panic!("Could not into_string"),
                   Ok(mut file_name) => {
                     file_name.pop();
                     file_name.pop();
@@ -64,15 +73,14 @@ fn manlist(roots: &Vec<String>) -> Vec<Man> {
   mans
 }
 
-// let result: String = line.chars().skip_while(|x| *x != ' ').skip(4).collect();
-
 /// The `line_clear_to` function first clears, moves the `line` variable
 /// to `find` and returns a boolean.
 
 fn line_clear_to(
   buff: &mut BufReader<&std::fs::File>,
   line: &mut String,
-  find: &str) -> bool {
+  find: &str
+) -> bool {
   line.clear();
   while buff.read_line(line).is_ok()
   && !line.is_empty() {
@@ -90,7 +98,8 @@ fn line_clear_to(
 fn line_to_multy(
   buff: &mut BufReader<&std::fs::File>,
   line: &mut String,
-  finds: &[&str]) -> u8 {
+  finds: &[&str]
+) -> u8 {
   while buff.read_line(line).is_ok()
   && !line.is_empty() {
     for find in finds {
@@ -103,10 +112,12 @@ fn line_to_multy(
   0
 }
 
-/// The `read_command_h_names` function returns a collection of command names
+/// The `read_uni_commandx_names` function returns a collection of command names
 /// from the man.
 
-fn read_command_h_names(line: &mut String) -> Vec<String> {
+fn read_uni_commandx_names(
+  line: &mut String
+) -> Vec<String> {
   let words: String = line.replace(",", "").trim().chars().skip(4).collect();
   let mut names: Vec<String> = Vec::new();
 
@@ -118,10 +129,12 @@ fn read_command_h_names(line: &mut String) -> Vec<String> {
   names
 }
 
-/// The `read_command_h_names` function returns the description
+/// The `read_uni_commandx_names` function returns the description
 /// from the man.
 
-fn read_command_h_description(line: &mut String) -> String {
+fn read_uni_commandx_description(
+  line: &mut String
+) -> String {
   let mut description: String = line.replace(",", "");
 
   description = description.trim().chars().skip(4).collect();
@@ -129,28 +142,30 @@ fn read_command_h_description(line: &mut String) -> String {
   description
 }
 
-fn read_command_h(
+fn read_uni_commandx(
   buff: &mut BufReader<&std::fs::File>,
   line: &mut String
 ) -> Result<Command, String> {
   let mut command_names: Vec<String> = Vec::new();
 
   if line_clear_to(buff, line, ".Nm") {
-    command_names = read_command_h_names(line);
+    command_names = read_uni_commandx_names(line);
     if line_clear_to(buff, line, ".Nd") {
       return Ok(Command {
         names: command_names,
-        description: read_command_h_description(line),
+        description: read_uni_commandx_description(line),
       });
     }
   }
   Err("H: invalid format's command".to_string())
 }
 
-/// The `read_command_h_names` function returns a collection of command names
+/// The `read_gnu_command_description` function returns a collection of command names
 /// from the man.
 
-fn read_command_H_names(line: &mut String) -> Vec<String> {
+fn read_gnu_command_names(
+  line: &mut String
+) -> Vec<String> {
   let mut words: String = line.replace(",", "");
   let mut names: Vec<String> = Vec::new();
 
@@ -166,17 +181,19 @@ fn read_command_H_names(line: &mut String) -> Vec<String> {
   names
 }
 
-/// The `read_command_h_names` function returns the description
+/// The `read_gnu_command_description` function returns the description
 /// from the man.
 
-fn read_command_H_description(line: &mut String) -> String {
+fn read_gnu_command_description(
+  line: &mut String
+) -> String {
   let mut description: String = line.replace(",", "").replace("\\", "");
 
   description = description.trim().chars().collect();
   description
 }
 
-fn read_command_H(
+fn read_gnu_command(
   buff: &mut BufReader<&std::fs::File>,
   line: &mut String
 ) -> Result<Command, String> {
@@ -189,13 +206,13 @@ fn read_command_H(
       let mut command = command.split_str("- ");
       match command.next() {
         Some(name) => {
-          command_names = read_command_H_names(&mut name.to_string());
+          command_names = read_gnu_command_names(&mut name.to_string());
           match command.next() {
             Some(description) => {
               
               return Ok(Command {
                 names: command_names,
-                description: read_command_H_description(&mut description.to_string()),
+                description: read_gnu_command_description(&mut description.to_string()),
               });
             }
             None => {},
@@ -208,36 +225,150 @@ fn read_command_H(
   Err("H: invalid format's command".to_string())
 }
 
-/// The `read` function checks and parses the name and description from
-/// a man.
-
-fn read_command(
+fn read_gnu_argument_description (
   buff: &mut BufReader<&std::fs::File>,
   line: &mut String
-) -> Result<Command, String> {
-  match line_to_multy(buff, line, &[".Sh NAME", ".SH NAME", ".SH \"NAME\""]) {
-    104 => return read_command_h(buff, line),
-    72 => return read_command_H(buff, line),
-    _ => return (Err("have not found NAME main".to_string())),
+) -> Result<Vec<String>, String> {
+  let mut description:String = String::new();
+  let mut descriptions:Vec<String> = Vec::new();
+
+  line.clear();
+  while buff.read_line(line).is_ok()
+  && !line.is_empty()
+  && !line.find_str(".SH").is_some()
+  && !line.find_str("\\-").is_some()
+  && !line.find_str(".TP").is_some() {
+    description = line.trim().to_string();
+    if !description.is_empty()
+    && description.as_bytes()[0] == 46 {
+      description = description.chars().skip_while(|x| *x != ' ').collect();
+    }
+    descriptions.push(description);
+    line.clear();
+  }
+  if descriptions.len() <= 0 {
+    return (Err(line.to_string()));
+  }
+  Ok(descriptions)
+}
+
+fn read_gnu_argument_option (
+  buff: &mut BufReader<&std::fs::File>,
+  line: &mut String
+) -> Result<String, String> {
+  let mut option:String = String::new();
+
+  line.clear();
+  buff.read_line(line);
+  option = line.trim().to_string();
+  option = option.chars().take_while(|x| *x != '"').collect();
+  option = option.chars().skip(3).collect();
+  if option.find_str("^").is_some() {
+    option = option.chars().skip_while(|x| *x != '^').collect();
+    option = option.chars().take_while(|x| *x != ' ').collect();
+    option = option.replace("^", "-");
+  }
+  else if option.find_str("-").is_some()
+       || option.find_str("\\").is_some() {
+    option = option.replace("\\-", "-");
+    option = option.replace("\\\\fR", "\n");
+    option = option.chars().take_while(|x| *x != '\n'
+                                        || *x != ' ').collect();
+    option = option.replace("*=", "--");
+  }
+  option = option.chars().take_while(|x| *x != '\\').collect();
+  option = option.replace(" ", "");
+  if !option.is_empty()
+  && (option.as_bytes()[0] == 45
+  || option.len() == 1) {
+    return (Ok(option));
+  }
+  Err(option)
+}
+
+fn read_gnu_argument (
+  buff: &mut BufReader<&std::fs::File>,
+  line: &mut String
+) {
+  let mut arguments:Vec<Argument> = Vec::new();
+
+  if line_to_multy(buff, line, &["OPTIONS"]) > 0 {
+    line.clear();
+    while line_to_multy(buff, line, &[".TP"]) > 0 {
+      match read_gnu_argument_option(buff, line) {
+        Ok(option) => {
+          match read_gnu_argument_description(buff, line) {
+            Ok(description) => {
+              println!("\t{}\n\t\t{:?}", option, description);
+              arguments.push(Argument {
+                option: option,
+                description: description,
+              });
+            },
+            Err(why) => {
+            },
+          }
+        },
+        Err(why) => {
+          //println!("bad option {:?}", why);
+        },
+      }
+    }
   }
 }
 
-/// The `read` function checks and parses the man according to name,
-/// description and argument.
+fn read_gnu(
+  buff: &mut BufReader<&std::fs::File>,
+  line: &mut String
+) {
+  match read_gnu_command(buff, line) {
+    Ok(command) => {
+      read_gnu_argument(buff, line);
+    },
+    Err(why) => {
+    },
+  }
+}
 
-fn read(man: &Man) {
+/// The `read` function checks and parses the name and description from
+/// a man.
+
+fn read_unix(
+  buff: &mut BufReader<&std::fs::File>,
+  line: &mut String
+) {
+  match read_uni_commandx(buff, line) {
+    Ok(command) => {
+//      println!("@ {}", command.description);
+    },
+    Err(why) => {
+    },
+  }
+}
+
+/*
+** GNU H 72
+** UNIX h 104
+*/
+
+fn read(
+  man: &Man
+) -> bool {
   let mut buff = BufReader::new(&man.file.open);
   let mut line = String::new();
 
-  match read_command(&mut buff, &mut line) {
-    Ok(command) => {
-      println!("{} @ {}", man.file.name, command.description);
+  match line_to_multy(&mut buff, &mut line, &[".Sh", ".SH"]) {
+    104 => {
+      read_unix(&mut buff, &mut line);
     },
-    Err(why) => {
-      print!("{} - ", man.file.name);
-      println!("{}", why);
+    72 => {
+      print!("{}\n", man.file.name);
+      read_gnu(&mut buff, &mut line);
+      println!("");
     },
+    _ => return false,
   }
+  false
 }
 
 
@@ -250,7 +381,7 @@ fn main() {
       let roots: Vec<String> = manpath.split_str(":").map(|x| x.to_string()).collect();
       let mut mans: Vec<Man> = manlist(&roots);
       for man in mans.iter() {
-        //if man.file.name == "pfbtops" {
+        //if man.file.name == "bc" {
           read(&man);
         //}
       }
