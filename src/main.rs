@@ -363,6 +363,8 @@ pub mod mans {
         description = description.replace("\\fI", "");
         description = description.replace("\\fR", "");
         description = description.replace("\\fB", "");
+        description = description.replace("\\-", "-");
+        description = description.replace("\\(aa", "");
         if !description.is_empty() {
           println!("\t\t{}", description);
           descriptions.push(description);
