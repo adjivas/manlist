@@ -164,6 +164,7 @@ pub mod mans {
 
       description = description.trim().chars().skip(4).collect();
       description = description.chars().take_while(|x| *x != '\\').collect();
+      description = description.replace("\"", "");
       if !description.is_empty() {
         return Ok(description);
       }
@@ -248,10 +249,10 @@ pub mod mans {
           }
         }
       }
-      if arguments.len() <= 0 {
-        return Err(String::from_str("invalid gnu's argument"));
+      if arguments.len() > 0 {
+        return Ok(arguments);
       }
-      Ok(arguments) 
+      Err(String::from_str("invalid gnu's argument"))
     }
 
     /// The `unix_option` function returns a list of
@@ -265,12 +266,17 @@ pub mod mans {
       opt = opt.replace("\\-", "-");
       opt = opt.replace("\\&", "");
       opt = opt.chars().skip(7).collect();
-      opt = opt.chars().take_while(|x| *x != ' ' && *x != '\\').collect();
-      if opt.is_empty() {
-        return Err(line.to_string());
+      opt = opt.chars().take_while(
+        |x| *x != ' ' &&
+        *x != '\\' &&
+        *x != '"' &&
+        *x != ','
+      ).collect();
+      if !opt.is_empty() {
+        option.push_str(opt.as_slice());
+        return Ok(option);
       }
-      option.push_str(opt.as_slice());
-      Ok(option)
+      Err(line.to_string())
     }
 
     /// The `unix_comment` function returns a list of
@@ -296,10 +302,10 @@ pub mod mans {
         }
         line.clear();  
       }
-      if descriptions.len() <= 0 {
-        return Err(line.to_string());
+      if descriptions.len() > 0 {
+        return Ok(descriptions);
       }
-      Ok(descriptions)
+      Err(line.to_string())
     }
 
     /// The `gnu_comment` function returns a list of
@@ -335,9 +341,9 @@ pub mod mans {
         line.clear();  
       }
       if descriptions.len() <= 0 {
-        return Err(line.to_string());
+        return Ok(descriptions);
       }
-      Ok(descriptions)
+      Err(line.to_string())      
     }
 
     /// The `gnu_option` function returns a list of
@@ -369,8 +375,7 @@ pub mod mans {
         option = option.chars().take_while(|x| *x != '\\').collect();
         option = option.replace(" ", "");
         if !option.is_empty()
-        && (option.as_bytes()[0] == 45
-        || option.len() == 1) {
+        && option.as_bytes()[0] == 45 {
           return Ok(option);
         }
       }
