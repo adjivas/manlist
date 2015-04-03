@@ -1,6 +1,7 @@
-#![feature(fs, io, path, collections)]
-#![feature(os)]
-#![feature(old_path)]
+#![feature(fs)]
+#![feature(io)]
+#![feature(path)]
+#![feature(collections)]
 #![feature(core)]
 
 pub mod mans {
@@ -13,13 +14,13 @@ pub mod mans {
   /// The `command` structure is a name ("bc") and
   /// a description ("An arbitrary precision...").
   pub struct Command {
-    names: Vec<String>,
-    description: String,
+    pub names: Vec<String>,
+    pub description: String,
   }
 
   impl Command {
 
-    /// The `Command::new` constructor function returns a new Command.
+    /// The `new` constructor function returns a new Command.
     fn new (
       names: Vec<String>,
       description: String,
@@ -46,7 +47,9 @@ pub mod mans {
                 Ok(names) => {
                   match command.next() {
                     Some(line_description) => {
-                      match Command::gnu_description(&mut line_description.to_string()) {
+                      match Command::gnu_description(
+                        &mut line_description.to_string()
+                      ) {
                         Ok(description) => {
                           return Ok(Command::new(
                             names,
@@ -75,10 +78,10 @@ pub mod mans {
       buff: &mut BufReader<&File>,
       line: &mut String
     ) -> Result<Self, String> {
-      if Descriptor::line_clear_to(buff, line, ".Nm") {
+      if line_clear_to(buff, line, ".Nm") {
         match Command::unix_names(line) {
           Ok(names) => {
-            if Descriptor::line_clear_to(buff, line, ".Nd") {
+            if line_clear_to(buff, line, ".Nd") {
               match Command::unix_description(line) {
                 Ok(description) => {
                   return Ok(Command::new(
@@ -101,14 +104,14 @@ pub mod mans {
     fn gnu_names (
       line: &mut String
     ) -> Result<Vec<String>, String> {
-      let mut sentence: String = line.replace(",", "");
+      let mut lines: String = line.replace(",", "");
       let mut names: Vec<String> = Vec::new();
 
-      if 92 == sentence.as_bytes()[0] {
-        sentence = sentence.chars().skip(3).collect();
+      if 92 == lines.as_bytes()[0] {
+        lines = lines.chars().skip(3).collect();
       }
-      sentence = sentence.chars().take_while(|x| *x != '\\').collect();
-      for name in sentence.split_str(" ") {
+      lines = lines.chars().take_while(|x| *x != '\\').collect();
+      for name in lines.split_str(" ") {
         if !name.is_empty() {
           names.push(name.to_string());
         }
@@ -116,7 +119,7 @@ pub mod mans {
       if names.len() > 0 {
         return Ok(names);
       }
-      Err(sentence)
+      Err(lines)
     }
 
     /// The `gnu_description` function returns the description
@@ -138,10 +141,10 @@ pub mod mans {
     fn unix_names (
       line: &mut String
     ) -> Result<Vec<String>, String> {
-      let sentence: String = line.replace(",", "").trim().chars().skip(4).collect();
+      let lines: String = line.replace(",", "").trim().chars().skip(4).collect();
       let mut names: Vec<String> = Vec::new();
 
-      for name in sentence.split_str(" ") {
+      for name in lines.split_str(" ") {
         if !name.is_empty() {
           names.push(name.to_string());
         }
@@ -149,7 +152,7 @@ pub mod mans {
       if names.len() > 0 {
         return Ok(names);
       }
-      Err(sentence)
+      Err(lines)
     }
 
     /// The `unix_description` function returns the description
@@ -171,8 +174,8 @@ pub mod mans {
   /// The `argument` structure is the first option ("-h") and
   /// all comments ("Print the usage and exit.", ...).
   pub struct Argument {
-    option: String,
-    comments: Vec<String>,
+    pub option: String,
+    pub comments: Vec<String>,
   }
 
   impl Argument {
@@ -196,7 +199,7 @@ pub mod mans {
     ) -> Result<Vec<Self>, String> {
       let mut arguments:Vec<Argument> = Vec::new();
 
-      while Descriptor::line_clear_to(buff, line, ".It Fl ") {
+      while line_clear_to(buff, line, ".It Fl ") {
         match Argument::unix_option(line) {
           Ok(option) => {
             match Argument::unix_comment(buff, line) {
@@ -226,9 +229,9 @@ pub mod mans {
     ) -> Result<Vec<Self>, String> {
       let mut arguments:Vec<Argument> = Vec::new();
 
-      if Descriptor::line_to_multy(buff, line, &["OPTIONS"]) > 0 {
+      if line_to_multy(buff, line, &["OPTIONS"]) > 0 {
         line.clear();
-        while Descriptor::line_to_multy(buff, line, &[".TP"]) > 0 {
+        while line_to_multy(buff, line, &[".TP"]) > 0 {
           match Argument::gnu_option(buff, line) {
             Ok(option) => {
               match Argument::gnu_comment(buff, line) {
@@ -378,12 +381,12 @@ pub mod mans {
   /// The `mans` structure is a defined by the two
   /// structures command and Argument
   pub struct Man {
-    command: Command,
-    arguments: Vec<Argument>,
+    pub command: Command,
+    pub arguments: Vec<Argument>,
   }
 
   impl Man {
-    /// The `Man::new` constructor function returns a new Man.
+    /// The `new` constructor function returns a new Man.
     pub fn new (
       command: Command,
       arguments: Vec<Argument>,
@@ -394,7 +397,7 @@ pub mod mans {
       }
     }
 
-    /// The `Man::from_open` constructor function returns a new Man
+    /// The `from_open` constructor function returns a new Man
     /// according the path.
     pub fn from_open (
       path: PathBuf,
@@ -405,14 +408,14 @@ pub mod mans {
       }
     }
 
-    /// The `Man::from_buff` constructor function returns a new Man
+    /// The `from_buff` constructor function returns a new Man
     /// according to a file descriptor.
     pub fn from_buff (
       open: File,
     ) -> Result<Self, String> {
       let mut buff = BufReader::new(&open);
       let mut line:String = String::new();
-      return match Descriptor::line_to_multy(
+      return match line_to_multy(
         &mut buff,
         &mut line,
         &[".Sh", ".SH"],
@@ -468,110 +471,79 @@ pub mod mans {
     }
   }
 
-  pub struct Descriptor {
-    buff: BufReader<File>,
-    line: String,
-  }
-
-  impl Descriptor {
-
-    /// The `new` constructor function returns a list of valid man
-    /// according to a list of possibely roots for .1's files.
-    fn from_root (
-      roots: &Vec<String>
-    ) -> Vec<Man> {
-      let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
-      for path in roots {
-        match walk_dir(&Path::new(path)) {
-          Err(why) => println!("walk_dir {:?}", why.kind()),
-          Ok(paths) => {
-            for path in paths {
-              let buf:PathBuf = path.unwrap().path();
-              if buf.extension().is_some()
-              && buf.extension().unwrap() == "1" {
-                match Man::from_open(buf) {
-                  Err(_) => {},
-                  Ok(man) => {
-                    mans.push(man);
-                  },
-                }
-              }
-            }
-          },
-        }
-      }
-      mans
-    }
-
-    /// The `line_clear_to` function first clears, moves
-    /// the `line` variable to `find` and returns a boolean.
-    fn line_clear_to (
-      buff: &mut BufReader<&File>,
-      line: &mut String,
-      find: &str
-    ) -> bool {
-      line.clear();
-      while buff.read_line(line).is_ok()
-      && !line.is_empty() {
-        if line.find_str(find).is_some() {
-          return true;
-        }
-        line.clear();
-      }
-      false
-    }
-
-    /// The `line_to_multy` function moves the `line` variable to `finds`,
-    /// founds the first egality for returns the two letters or returns zero.
-    fn line_to_multy (
-      buff: &mut BufReader<&File>,
-      line: &mut String,
-      finds: &[&str]
-    ) -> u8 {
-      while buff.read_line(line).is_ok()
-      && !line.is_empty() {
-        for find in finds {
-          if line.find_str(find).is_some() {
-            return line.as_bytes()[2];
-          }
-        }
-        line.clear();
-      }
-      0
-    }
-  }
-
-  /// The `mans::new` constructor function return a valid list
+  /// The `new` constructor function return a valid list
   /// of man.
   pub fn new (
     manpath: String
-  ) {
+  ) -> Vec<Man> {
     let roots: Vec<String> = manpath.split_str(":").map(
       |x| x.to_string()
     ).collect();
-    let mans: Vec<Man> = Descriptor::from_root(&roots);
-    for man in mans.iter() {
-      for comment in man.command.names.iter() {
-        println!("command.names:\t\t{}", comment);
-      }
-      println!("command.description:\t\t{}", man.command.description);
-      for argument in man.arguments.iter() {
-        println!("argument.option:\t\t\t{}", argument.option);
-        for comment in argument.comments.iter() {
-          println!("argument.comment:\t\t\t\t{}", comment);
-        }
+    from_root(&roots) 
+  }
+
+  /// The `new` constructor function returns a list of valid man
+  /// according to a list of possibely roots for .1's files.
+  pub fn from_root (
+    roots: &Vec<String>
+  ) -> Vec<Man> {
+    let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
+    for path in roots {
+      match walk_dir(&PathBuf::new(path)) {
+        Err(why) => println!("walk_dir {:?}", why.kind()),
+        Ok(paths) => {
+          for path in paths {
+            let buf:PathBuf = path.unwrap().path();
+            if buf.extension().is_some()
+            && buf.extension().unwrap() == "1" {
+              match Man::from_open(buf) {
+                Err(_) => {},
+                Ok(man) => {
+                  mans.push(man);
+                },
+              }
+            }
+          }
+        },
       }
     }
+    mans
   }
-}
 
-fn main() {
-  let key = "MANPATH";
+  /// The `line_clear_to` function first clears, moves
+  /// the `line` variable to `find` and returns a boolean.
+  fn line_clear_to (
+    buff: &mut BufReader<&File>,
+    line: &mut String,
+    find: &str
+  ) -> bool {
+    line.clear();
+    while buff.read_line(line).is_ok()
+    && !line.is_empty() {
+      if line.find_str(find).is_some() {
+        return true;
+      }
+      line.clear();
+    }
+    false
+  }
 
-  match std::os::getenv(key) {
-    None => println!("the ${:?} from environement is empty! ", key),
-    Some(manpath) => {
-      mans::new(manpath);
-    },
+  /// The `line_to_multy` function moves the `line` variable to `finds`,
+  /// founds the first egality for returns the two letters or returns zero.
+  fn line_to_multy (
+    buff: &mut BufReader<&File>,
+    line: &mut String,
+    finds: &[&str]
+  ) -> u8 {
+    while buff.read_line(line).is_ok()
+    && !line.is_empty() {
+      for find in finds {
+        if line.find_str(find).is_some() {
+          return line.as_bytes()[2];
+        }
+      }
+      line.clear();
+    }
+    0
   }
 }

@@ -1,5 +1,13 @@
 [package]
 
-name = "rep"
+name = "manlist"
 version = "0.0.1"
 authors = ["adjivas <adjivas@users.noreply.github.com>"]
+
+[lib]
+name = "MANs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "test"
+path = "src/bin.rs"
