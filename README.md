@@ -1,7 +1,7 @@
 MAN-list (Futur project from 42)
 ================================
 
-[![Build Status](https://travis-ci.org/adjivas/rust-syslog.png?branch=master)](https://travis-ci.org/adjivas/manlist)
+[![Build Status](https://travis-ci.org/adjivas/manlist.svg?branch=master)](https://travis-ci.org/adjivas/manlist)
 
 This librairy is a *systen's project* for parse all one'smanuel from **POSIX OS** environement
 
