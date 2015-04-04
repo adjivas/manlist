@@ -1,8 +1,6 @@
-#![feature(fs)]
-#![feature(io)]
-#![feature(path)]
 #![feature(collections)]
 #![feature(core)]
+#![feature(fs_walk)]
 
 pub mod mans {
   use std::fs::walk_dir;
@@ -39,8 +37,9 @@ pub mod mans {
     ) -> Result<Self, String> {
       if buff.read_line(line).is_ok() {
         let command: String = line.replace("\\- ", "- ");
-        if line.find_str("- ").is_some() {
-          let mut command = command.split_str("- ");
+
+        if line.find("- ").is_some() {
+          let mut command = command.split("- ");
           match command.next() {
             Some(line_name) => {
               match Command::gnu_names(&mut line_name.to_string()) {
@@ -56,7 +55,8 @@ pub mod mans {
                             description,
                           ));
                         },
-                        Err(_) => {},
+                        Err(_) => {
+                        },
                       }
                     },
                     None => {},
@@ -111,7 +111,7 @@ pub mod mans {
         lines = lines.chars().skip(3).collect();
       }
       lines = lines.chars().take_while(|x| *x != '\\').collect();
-      for name in lines.split_str(" ") {
+      for name in lines.split(" ") {
         if !name.is_empty() {
           names.push(name.to_string());
         }
@@ -144,7 +144,7 @@ pub mod mans {
       let lines: String = line.replace(",", "").trim().chars().skip(4).collect();
       let mut names: Vec<String> = Vec::new();
 
-      for name in lines.split_str(" ") {
+      for name in lines.split(" ") {
         if !name.is_empty() {
           names.push(name.to_string());
         }
@@ -192,36 +192,6 @@ pub mod mans {
       }
     }
 
-    /// The `from_unix` Constructor function returns all options and comments
-    /// from the man's unix command  (["-h", "Print..."], ["-i", "Force..."]).
-    fn from_unix (
-      buff: &mut BufReader<&File>,
-      line: &mut String
-    ) -> Result<Vec<Self>, String> {
-      let mut arguments:Vec<Argument> = Vec::new();
-
-      while line_clear_to(buff, line, ".It Fl ") {
-        match Argument::unix_option(line) {
-          Ok(option) => {
-            match Argument::unix_comment(buff, line) {
-              Ok(description) => {
-                arguments.push(Argument::new(
-                  option,
-                  description,
-                ));
-              },
-              Err(_) => {},
-            }
-          },
-          Err(_) => {},
-        }
-      }
-      if arguments.len() <= 0 {
-        return Err(String::from_str("invalid unix's argument"));
-      }
-      Ok(arguments) 
-    }
-
     /// The `from_gnu` Constructor function returns all options and comments
     /// from the man's gnu command  (["-h", "Print..."], ["-i", "Force..."]).
     fn from_gnu (
@@ -253,6 +223,36 @@ pub mod mans {
         return Ok(arguments);
       }
       Err(String::from_str("invalid gnu's argument"))
+    }
+
+    /// The `from_unix` Constructor function returns all options and comments
+    /// from the man's unix command  (["-h", "Print..."], ["-i", "Force..."]).
+    fn from_unix (
+      buff: &mut BufReader<&File>,
+      line: &mut String
+    ) -> Result<Vec<Self>, String> {
+      let mut arguments:Vec<Argument> = Vec::new();
+
+      while line_clear_to(buff, line, ".It Fl ") {
+        match Argument::unix_option(line) {
+          Ok(option) => {
+            match Argument::unix_comment(buff, line) {
+              Ok(description) => {
+                arguments.push(Argument::new(
+                  option,
+                  description,
+                ));
+              },
+              Err(_) => {},
+            }
+          },
+          Err(_) => {},
+        }
+      }
+      if arguments.len() <= 0 {
+        return Err(String::from_str("invalid unix's argument"));
+      }
+      Ok(arguments) 
     }
 
     /// The `unix_option` function returns a list of
@@ -318,9 +318,9 @@ pub mod mans {
 
       line.clear();
       while buff.read_line(line).is_ok() && !line.is_empty()
-      && !line.find_str(".SH").is_some()
-      && !line.find_str("\\-").is_some()
-      && !line.find_str(".TP").is_some() {
+      && !line.find(".SH").is_some()
+      && !line.find("\\-").is_some()
+      && !line.find(".TP").is_some() {
         let mut description:String = line.trim().to_string();
         if !description.is_empty() && description.as_bytes()[0] == 46 {
           description = description.chars().skip_while(
@@ -358,13 +358,13 @@ pub mod mans {
       if buff.read_line(line).is_ok() {
         option = option.chars().take_while(|x| *x != '"').collect();
         option = option.chars().skip(3).collect();
-        if option.find_str("^").is_some() {
+        if option.find("^").is_some() {
           option = option.chars().skip_while(|x| *x != '^').collect();
           option = option.chars().take_while(|x| *x != ' ').collect();
           option = option.replace("^", "-");
         }
-        else if option.find_str("-").is_some()
-        || option.find_str("\\").is_some() {
+        else if option.find("-").is_some()
+        || option.find("\\").is_some() {
           option = option.replace("\\-", "-");
           option = option.replace("\\\\fR", "\n");
           option = option.chars().take_while(
@@ -478,10 +478,10 @@ pub mod mans {
 
   /// The `new` constructor function return a valid list
   /// of man.
-  pub fn new (
+  pub fn from_string (
     manpath: String
   ) -> Vec<Man> {
-    let roots: Vec<String> = manpath.split_str(":").map(
+    let roots: Vec<String> = manpath.split(":").map(
       |x| x.to_string()
     ).collect();
     from_root(&roots) 
@@ -494,7 +494,7 @@ pub mod mans {
   ) -> Vec<Man> {
     let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
     for path in roots {
-      match walk_dir(&PathBuf::new(path)) {
+      match walk_dir(&PathBuf::from(path)) {
         Err(why) => println!("walk_dir {:?}", why.kind()),
         Ok(paths) => {
           for path in paths {
@@ -502,7 +502,9 @@ pub mod mans {
             if buf.extension().is_some()
             && buf.extension().unwrap() == "1" {
               match Man::from_open(buf) {
-                Err(_) => {},
+                Err(_) => {
+
+                },
                 Ok(man) => {
                   mans.push(man);
                 },
@@ -525,7 +527,7 @@ pub mod mans {
     line.clear();
     while buff.read_line(line).is_ok()
     && !line.is_empty() {
-      if line.find_str(find).is_some() {
+      if line.find(find).is_some() {
         return true;
       }
       line.clear();
@@ -543,7 +545,7 @@ pub mod mans {
     while buff.read_line(line).is_ok()
     && !line.is_empty() {
       for find in finds {
-        if line.find_str(find).is_some() {
+        if line.find(find).is_some() {
           return line.as_bytes()[2];
         }
       }

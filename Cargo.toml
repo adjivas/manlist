@@ -3,11 +3,14 @@
 name = "manlist"
 version = "0.0.1"
 authors = ["adjivas <adjivas@users.noreply.github.com>"]
+description = "Lists all man.1 and returns a structure"
+license = "GNUv3"
+repository = "https://github.com/adjivas/manlist"
 
 [lib]
-name = "MANs"
+name = "mans"
 path = "src/lib.rs"
 
 [[bin]]
-name = "test"
+name = "example"
 path = "src/bin.rs"
