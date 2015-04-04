@@ -1,5 +1,4 @@
 #![feature(collections)]
-#![feature(core)]
 #![feature(fs_walk)]
 
 pub mod mans {
@@ -273,7 +272,7 @@ pub mod mans {
         *x != ','
       ).collect();
       if !opt.is_empty() {
-        option.push_str(opt.as_slice());
+        option.push_str(&opt);
         return Ok(option);
       }
       Err(line.to_string())
