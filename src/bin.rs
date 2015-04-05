@@ -1,11 +1,11 @@
-extern crate mans;
+extern crate manslib;
 
 fn main() {
   let key = "MANPATH";
   match std::env::var(key) {
     Err(why) => println!("the ${} from environement is empty!: {:?}", key, why),
     Ok(manpath) => {
-      let mans: Vec<mans::mans::Man> = mans::mans::from_string(manpath);
+      let mans: Vec<manslib::mans::Man> = manslib::mans::from_string(manpath);
 
       for man in mans.iter() {
         for comment in man.command.names.iter() {
