@@ -515,7 +515,7 @@ pub mod mans {
     }
     mans
   }
-
+  
   /// The `line_clear_to` function first clears, moves
   /// the `line` variable to `find` and returns a boolean.
   fn line_clear_to (

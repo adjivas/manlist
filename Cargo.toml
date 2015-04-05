@@ -8,7 +8,7 @@ license = "GNUv3"
 repository = "https://github.com/adjivas/manlist"
 
 [lib]
-name = "mans"
+name = "manslib"
 path = "src/lib.rs"
 
 [[bin]]
