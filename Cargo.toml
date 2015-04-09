@@ -12,5 +12,5 @@ name = "manslib"
 path = "src/lib.rs"
 
 [[bin]]
-name = "example"
+name = "main"
 path = "src/bin.rs"

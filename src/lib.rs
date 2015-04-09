@@ -54,8 +54,7 @@ pub mod mans {
                             description,
                           ));
                         },
-                        Err(_) => {
-                        },
+                        Err(_) => {},
                       }
                     },
                     None => {},
@@ -494,7 +493,7 @@ pub mod mans {
     let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
     for path in roots {
       match walk_dir(&PathBuf::from(path)) {
-        Err(why) => println!("walk_dir {:?}", why.kind()),
+        Err(why) => println!("walk_dir {} {:?}", path, why.kind()),
         Ok(paths) => {
           for path in paths {
             let buf:PathBuf = path.unwrap().path();

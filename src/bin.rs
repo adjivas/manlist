@@ -8,8 +8,8 @@ fn main() {
       let mans: Vec<manslib::mans::Man> = manslib::mans::from_string(manpath);
 
       for man in mans.iter() {
-        for comment in man.command.names.iter() {
-          println!("command.names:\t\t{}", comment);
+        for names in man.command.names.iter() {
+          println!("command.names:\t\t{}", names);
         }
         println!("command.description:\t\t{}", man.command.description);
         for argument in man.arguments.iter() {
