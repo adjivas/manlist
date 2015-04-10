@@ -1,9 +1,9 @@
 pub mod mans {
-  use std::fs::walk_dir;
   use std::fs::File;
   use std::io::BufReader;
   use std::io::BufRead;
   use std::path::PathBuf;
+  extern crate glob;
 
   /// The `command` structure is a name ("bc") and
   /// a description ("An arbitrary precision...").
@@ -36,6 +36,9 @@ pub mod mans {
 
         if line.find("- ").is_some() {
           let mut command = command.split("- ");
+          
+          // Warning, this four match is a not "good practice", the
+          // method `from_gnu` must be revised for more efficiance.
           match command.next() {
             Some(line_name) => {
               match Command::gnu_names(&mut line_name.to_string()) {
@@ -488,25 +491,18 @@ pub mod mans {
     roots: &Vec<String>
   ) -> Vec<Man> {
     let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
-    for path in roots {
-      match walk_dir(&PathBuf::from(path)) {
-        Err(why) => println!("walk_dir {} {:?}", path, why.kind()),
-        Ok(paths) => {
-          for path in paths {
-            let buf:PathBuf = path.unwrap().path();
-            if buf.extension().is_some()
-            && buf.extension().unwrap() == "1" {
-              match Man::from_open(buf) {
-                Err(_) => {
-
-                },
-                Ok(man) => {
-                  mans.push(man);
-                },
-              }
-            }
-          }
-        },
+    for paths in roots {
+      let mut one:String = paths.clone();
+  
+      one.push_str("/*/*.1");
+      for file in glob::glob(&one).unwrap().filter_map(Result::ok) {
+         match Man::from_open(file) {
+           Err(_) => {
+           },
+           Ok(man) => {
+             mans.push(man);
+           },
+         }
       }
     }
     mans
