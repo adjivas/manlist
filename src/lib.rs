@@ -1,6 +1,3 @@
-#![feature(collections)]
-#![feature(fs_walk)]
-
 pub mod mans {
   use std::fs::walk_dir;
   use std::fs::File;
@@ -67,7 +64,7 @@ pub mod mans {
           }
         }
       }
-      Err(String::from_str("invalid gnu's command"))
+      Err("invalid gnu's command".to_string())
     }
 
     /// The `from_unix` constructor function returns the name and the
@@ -94,7 +91,7 @@ pub mod mans {
           Err(_) => {},
         }
       }
-      Err(String::from_str("invalid unix's command")) 
+      Err("invalid unix's command".to_string()) 
     }
 
     /// The `gnu_names` function returns the command
@@ -220,7 +217,7 @@ pub mod mans {
       if arguments.len() > 0 {
         return Ok(arguments);
       }
-      Err(String::from_str("invalid gnu's argument"))
+      Err("invalid gnu's argument".to_string())
     }
 
     /// The `from_unix` Constructor function returns all options and comments
@@ -248,7 +245,7 @@ pub mod mans {
         }
       }
       if arguments.len() <= 0 {
-        return Err(String::from_str("invalid unix's argument"));
+        return Err("invalid unix's argument".to_string());
       }
       Ok(arguments) 
     }
@@ -258,7 +255,7 @@ pub mod mans {
     fn unix_option (
       line: &mut String
     ) -> Result<String, String> {
-      let mut option:String = String::from_str("-");
+      let mut option:String = "-".to_string();
       let mut opt:String = line.trim().to_string();
 
       opt = opt.replace("\\-", "-");
@@ -425,7 +422,7 @@ pub mod mans {
       ) {
         104 => Man::read_unix(&mut buff, &mut line),
         72 => Man::read_gnu(&mut buff, &mut line),
-        _ => Err(String::from_str("unknown man")),
+        _ => Err("unknown man".to_string()),
       }
     }
 
@@ -448,7 +445,7 @@ pub mod mans {
         },
         Err(_) => {},
       }
-      Err(String::from_str("invalid gnu's man"))
+      Err("invalid gnu's man".to_string())
     }
 
     /// The `read_unix` function checks and parses the: name,
@@ -470,7 +467,7 @@ pub mod mans {
         },
         Err(_) => {},
       }
-      Err(String::from_str("invalid unix's man"))
+      Err("invalid unix's man".to_string())
     }
   }
 
