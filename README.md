@@ -3,7 +3,7 @@ MAN-list
 
 [![Build Status](https://travis-ci.org/adjivas/manlist.svg?branch=master)](https://travis-ci.org/adjivas/manlist)
 
-This librairy is a *systen's project* for parse all one'smanuel from **POSIX OS** environement
+This librairy is a *systen's project* for parse all one'smanuel from **POSIX OS** environement.
 
 #### Dependancy:
 
@@ -52,3 +52,6 @@ argument.comment:			    	Only rebase the specified architecture.  Other architec
 
 # License
 *manlist*'s code in this repo uses the [GNU GPL v3](http://www.gnu.org/licenses/gpl-3.0.html) [license](https://github.com/adjivas/manlist/blob/master/LICENSE).
+
+#### About [Dependencies-Crates](https://crates.io/), thanks goes to:
+  * [glob >= "0.2.9"](https://crates.io/crates/glob)
