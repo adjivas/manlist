@@ -1,5 +1,5 @@
-MAN-list (Futur project from 42)
-================================
+MAN-list
+========
 
 [![Build Status](https://travis-ci.org/adjivas/manlist.svg?branch=master)](https://travis-ci.org/adjivas/manlist)
 
@@ -38,5 +38,17 @@ argument.comment:			    	Only rebase the specified architecture.  Other architec
 ...
 ```
 
+Directory-Tree:
+
+```shell
+.
+|__ Cargo.toml
+|__ LICENSE
+|__ README.md
+\__ src
+    |__ bin.rs
+    \__ lib.rs
+```
+
 # License
-*manlist*'s code in this repo uses the [GNU GPL v3](http://www.gnu.org/licenses/gpl-3.0.html) [license](https://github.com/adjivas/mouscreen-WINDOWS/blob/master/LICENSE).
+*manlist*'s code in this repo uses the [GNU GPL v3](http://www.gnu.org/licenses/gpl-3.0.html) [license](https://github.com/adjivas/manlist/blob/master/LICENSE).
