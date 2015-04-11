@@ -38,7 +38,7 @@ argument.comment:			    	Only rebase the specified architecture.  Other architec
 ...
 ```
 
-Directory-Tree:
+#### Directory-Tree:
 
 ```shell
 .
