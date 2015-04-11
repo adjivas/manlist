@@ -5,7 +5,7 @@ MAN-list
 
 This librairy is a *systen's project* for parse all one'smanuel from **POSIX OS** environement.
 
-#### Dependancy:
+#### Environment:
 
 Please, check your **MANPATH**'s variable of environment (```echo $MANPATH```). If this variable is empty, you can resolve this with:
 
