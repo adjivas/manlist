@@ -497,17 +497,33 @@ pub mod mans {
       one.push_str("/*/*.1");
       for file in glob::glob(&one).unwrap().filter_map(Result::ok) {
          match Man::from_open(file) {
-           Err(_) => {
-           },
-           Ok(man) => {
-             mans.push(man);
-           },
+          Err(_) => {
+          },
+          Ok(man) => {
+            if !search_description(&mans, &man.command.description) {
+              mans.push(man);
+            }
+          },
          }
       }
     }
     mans
   }
-  
+
+  /// The `search_description` function returns a boolean true if
+  /// description is a element from man's list.
+  fn search_description (
+    mans: &Vec<Man>,
+    find: &String
+  ) -> bool {
+    for man in mans {
+      if man.command.description == *find {
+        return true;
+      }
+    }
+    false
+  }
+
   /// The `line_clear_to` function first clears, moves
   /// the `line` variable to `find` and returns a boolean.
   fn line_clear_to (
