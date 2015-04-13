@@ -403,7 +403,7 @@ pub mod mans {
     /// The `from_open` constructor function returns a new Man
     /// according the path.
     pub fn from_open (
-      path: PathBuf,
+      path: &PathBuf,
     ) -> Result<Self, String> {
       return match File::open(&path) {
         Err(why) => Err(why.to_string()),
@@ -495,16 +495,19 @@ pub mod mans {
       let mut one:String = paths.clone();
   
       one.push_str("/*/*.1");
-      for file in glob::glob(&one).unwrap().filter_map(Result::ok) {
-         match Man::from_open(file) {
-          Err(_) => {
+      for buff in glob::glob(&one).unwrap().filter_map(Result::ok) {
+         let name = &buff.file_name().unwrap();
+         match Man::from_open(&buff) {
+          Err(why) => {
+            println!("fail add {:?} because: {}", name, why);
           },
           Ok(man) => {
             if !search_description(&mans, &man.command.description) {
+              println!("success add {:?}", name);
               mans.push(man);
             }
           },
-         }
+        }
       }
     }
     mans
