@@ -474,21 +474,10 @@ pub mod mans {
     }
   }
 
-  /// The `new` constructor function return a valid list
-  /// of man.
-  pub fn from_string (
-    manpath: String
-  ) -> Vec<Man> {
-    let roots: Vec<String> = manpath.split(":").map(
-      |x| x.to_string()
-    ).collect();
-    from_root(&roots) 
-  }
-
   /// The `new` constructor function returns a list of valid man
   /// according to a list of possibely roots for .1's files.
-  pub fn from_root (
-    roots: &Vec<String>
+  pub fn new (
+    roots: Vec<String>
   ) -> Vec<Man> {
     let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
     for paths in roots {
