@@ -4,7 +4,7 @@ fn main() {
   match std::env::var("MANPATH") {
     Err(why) => println!("the MANPATH from environement is empty!: {:?}", why),
     Ok(manpath) => {
-      let mans: Vec<manslib::mans::Man> = manslib::mans::new(manpath.split(":").map(|x| x.to_string()).collect());
+      let mans: Vec<manslib::mans::Man> = manslib::mans::from_env(manpath.split(":").map(|x| x.to_string()).collect());
 
       for man in mans.iter() {
         for names in man.command.names.iter() {

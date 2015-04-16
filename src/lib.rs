@@ -476,7 +476,7 @@ pub mod mans {
 
   /// The `new` constructor function returns a list of valid man
   /// according to a list of possibely roots for .1's files.
-  pub fn new (
+  pub fn from_env (
     roots: Vec<String>
   ) -> Vec<Man> {
     let mut mans: Vec<Man> = Vec::with_capacity(roots.capacity());
