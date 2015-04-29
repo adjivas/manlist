@@ -1,3 +1,10 @@
+// @adjivas - github.com/adjivas. See the LICENSE
+// file at the top-level directory of this distribution and at
+// https://github.com/adjivas/manlist/LICENCE.
+//
+// This file may not be copied, modified, or distributed
+// except according to those terms.
+
 pub mod mans {
   use std::fs::File;
   use std::io::BufReader;
@@ -551,5 +558,31 @@ pub mod mans {
       line.clear();
     }
     0
+  }
+
+  /// The `display` function returns a man's text.
+  pub fn display (
+    mans: &Vec<Man>,
+    binary: &String,
+  ) -> String {
+    let mut out:String = String::new();
+
+    'manual: for man in mans.iter() {
+      if man.command.names.contains(&binary) {
+        out.push_str(&man.command.description);
+        out.push_str("\n");
+        for argument in man.arguments.iter() {
+          out.push_str(&argument.option);
+          out.push_str("\n");
+          for comment in argument.comments.iter() {
+            out.push_str("\t");
+            out.push_str(&comment);
+          }
+          out.push_str("\n");
+        }
+        return out;
+      }
+    }
+    "command not found\n".to_string()
   }
 }
