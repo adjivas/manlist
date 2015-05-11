@@ -2,6 +2,7 @@ MAN-list
 ========
 
 [![Build Status](https://travis-ci.org/adjivas/manlist.svg?branch=master)](https://travis-ci.org/adjivas/manlist)
+[![GPLv3 License](http://img.shields.io/badge/license-GPLv3-blue.svg)](https://www.gnu.org/copyleft/gpl.html)
 
 This librairy is a *systen's project* for parse all one'smanuel from **POSIX OS** environement.
 
